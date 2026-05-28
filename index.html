@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>IRU Price Action</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body data-theme="dark">
+
+<!-- NAVBAR -->
+<div class="navbar">
+
+    <!-- CENTER BUTTONS -->
+    <div class="nav-center">
+
+        <button class="nav-btn" onclick="showDashboard()">Dashboard</button>
+        <button class="nav-btn" onclick="showIndicators()">Indicators</button>
+        <button class="nav-btn" onclick="showStrategies()">My Strategy</button>
+        <button class="nav-btn" onclick="showYoutubePage()">YouTube</button>
+
+
+        <button class="nav-btn" onclick="openTool('https://tv.dhan.co')">Dhan</button>
+        <button class="nav-btn" onclick="openTool('https://www.forexfactory.com/calendar')">Forex News</button>
+        <button class="nav-btn" onclick="openTool('https://www.babypips.com/tools/forex-market-hours')">Forex Market Hours</button>
+        <button class="nav-btn" onclick="openTool('https://www.tradingview.com/chart/?symbol=NSE:NIFTY&interval=60')">TradingView</button>
+        <button class="nav-btn" onclick="openTool('https://my.exness.com/webtrading/')">Exness</button>
+        <button class="nav-btn" onclick="openTool('https://thefundedroom.com/')">Funded Room</button>
+
+    </div>
+
+    <!-- RIGHT MODE BUTTON -->
+    <div class="nav-right">
+        <button class="mode-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+
+</div>
+
+<!-- TITLE -->
+<h1 class="title">
+
+    IRU Price Action
+
+</h1>
+
+<!-- DASHBOARD -->
+<div class="grid" id="dashboard">
+    
+    <!-- Indian Market -->
+    <div class="card">
+        <h2>🏦  Indian Market  </h2>
+        <div class="btn-container">
+            <button class="btn index" onclick="handlePairClick('NSE:NIFTY')">📈 NIFTY 50<div class="symbol">NSE:NIFTY</div></button>
+            <button class="btn index" onclick="handlePairClick('BSE:SENSEX')">📈 SENSEX<div class="symbol">BSE:SENSEX</div></button>
+        </div>
+    </div>
+
+    <!-- Gold & Crypto -->
+    <div class="card">
+        <h2>🔥 Gold & Crypto</h2>
+        <div class="btn-container">
+            <button class="btn gold" onclick="handlePairClick('XAUUSD')">🪙 GOLD<div class="symbol">XAUUSD</div></button>
+            <button class="btn crypto" onclick="handlePairClick('BTCUSDT')">💰 BTC<div class="symbol">BTCUSDT</div></button>
+            <button class="btn crypto" onclick="handlePairClick('ETHUSDT')">💰 ETH<div class="symbol">ETHUSDT</div></button>
+            <button class="btn crypto" onclick="handlePairClick('XRPUSDT')">💰 XRP<div class="symbol">XRPUSDT</div></button>
+        </div>
+    </div>
+
+    <!-- FOREX -->
+    <div class="card">
+        <h2>💱 Forex Pairs</h2>
+        <button class="btn forex" onclick="handlePairClick('EURUSD')">💱 EURUSD</button>
+        <button class="btn forex" onclick="handlePairClick('GBPUSD')">💱 GBPUSD</button>
+        <button class="btn forex" onclick="handlePairClick('USDJPY')">💱 USDJPY</button>
+        <button class="btn forex" onclick="handlePairClick('USDCHF')">💱 USDCHF</button>
+        <button class="btn forex" onclick="handlePairClick('USDCAD')">💱 USDCAD</button>
+        <button class="btn forex" onclick="handlePairClick('AUDUSD')">💱 AUDUSD</button>
+        <button class="btn forex" onclick="handlePairClick('NZDUSD')">💱 NZDUSD</button>
+        <button class="btn forex" onclick="handlePairClick('EURJPY')">💱 EURJPY</button>
+        <button class="btn forex" onclick="handlePairClick('GBPJPY')">💱 GBPJPY</button>
+        <button class="btn forex" onclick="handlePairClick('AUDJPY')">💱 AUDJPY</button>
+        <button class="btn forex" onclick="handlePairClick('NZDJPY')">💱 NZDJPY</button>
+        <button class="btn forex" onclick="handlePairClick('EURGBP')">💱 EURGBP</button>
+        <button class="btn forex" onclick="handlePairClick('EURCHF')">💱 EURCHF</button>
+        <button class="btn forex" onclick="handlePairClick('GBPCAD')">💱 GBPCAD</button>
+        <button class="btn forex" onclick="handlePairClick('NZDCAD')">💱 NZDCAD</button>
+    </div>
+
+    <!-- Global Indices -->
+    <div class="card">
+        <h2>📊 Global Indices</h2>
+        <div class="btn-container">
+            <button class="btn global" onclick="handlePairClick('US30')">🌎 US30</button>
+            <button class="btn global" onclick="handlePairClick('NDX')">🌎 NDX</button>
+            <button class="btn global" onclick="handlePairClick('SPX')">🌎 SPX</button>
+        </div>
+    </div>
+
+
+</div>
+
+<!-- ===============================
+     ADVANCED INSTRUCTION POPUP
+================================ -->
+
+<!-- =========================================
+     PREMIUM INSTRUCTION POPUP
+========================================= -->
+
+<div id="indicatorInstructionPopup">
+
+    <div class="popup-box advanced-popup">
+
+        <!-- TOP BAR -->
+        <div class="popup-topbar">
+
+            <div class="popup-title-wrap">
+
+                <h1>📘 Trading Instructions</h1>
+
+                <p>
+                    Read before using indicators in live market.
+                </p>
+
+            </div>
+
+            <!-- CLOSE BUTTON -->
+            <button
+                class="popup-close-x"
+                onclick="closeInstructionPopup()"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <!-- WARNING -->
+        <div class="warning-box">
+
+            ⚠️ Indicators help decision making —
+            they DO NOT predict market perfectly.
+
+        </div>
+        
+        <div class="practice-banner">
+
+            🔥 Practice is the key to consistency in trading.
+
+        </div>
+
+        <!-- GOOD VS BAD -->
+        <div class="comparison-grid">
+
+            <!-- GOOD -->
+            <div class="compare-card good">
+
+                <div class="compare-icon good-icon">
+                    ✅
+                </div>
+
+                <h2>Professional Trading</h2>
+
+                <ul>
+
+                    <li>Trade with market trend</li>
+
+                    <li>Wait for confirmation candle</li>
+
+                    <li>Use EMA + Structure + FVG</li>
+
+                    <li>Use proper stop loss</li>
+
+                    <li>Follow risk management</li>
+
+                    <li>Trade patiently</li>
+
+                </ul>
+
+            </div>
+
+            <!-- BAD -->
+            <div class="compare-card bad">
+
+                <div class="compare-icon bad-icon">
+                    ❌
+                </div>
+
+                <h2>Beginner Mistakes</h2>
+
+                <ul>
+
+                    <li>Entering randomly</li>
+
+                    <li>Overtrading</li>
+
+                    <li>Trading during news spikes</li>
+
+                    <li>No stop loss</li>
+
+                    <li>Ignoring market structure</li>
+
+                    <li>Depending only on indicators</li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+        <!-- FLOW -->
+        <div class="strategy-flow">
+
+            <h2>📊 Entry Confirmation Flow</h2>
+
+            <div class="flow-box trading-flow">
+
+                Trend →
+                EMA →
+                Structure →
+                FVG →
+                Confirmation →
+                Entry
+
+            </div>
+
+        </div>
+
+        <!-- CHECKLIST -->
+        <div class="rules-section">
+
+            <h2>🧠 Trade Checklist</h2>
+
+            <div class="rules-grid">
+
+                <div class="rule-box">
+                    ✔ Trend Confirmed
+                </div>
+
+                <div class="rule-box">
+                    ✔ Liquidity Sweep
+                </div>
+
+                <div class="rule-box">
+                    ✔ Candle Close
+                </div>
+
+                <div class="rule-box">
+                    ✔ Risk Reward 1:2+
+                </div>
+
+                <div class="rule-box">
+                    ✔ Stop Loss Added
+                </div>
+
+                <div class="rule-box">
+                    ✔ News Checked
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RISK EXAMPLE -->
+        <div class="risk-box">
+
+            <h2>💰 Risk Management Example</h2>
+
+            <div class="risk-grid">
+
+                <div class="risk-card">
+
+                    <h3>Bad Trade</h3>
+
+                    <p>
+                        ₹1000 Risk → ₹500 Profit
+                    </p>
+
+                </div>
+
+                <div class="risk-card good-risk">
+
+                    <h3>Good Trade</h3>
+
+                    <p>
+                        ₹500 Risk → ₹1500 Profit
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="popup-buttons">
+
+            <button
+                id="instructionOkBtn"
+                class="popup-btn ok-btn"
+            >
+                🚀 Continue
+            </button>
+
+            
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- INDICATORS PAGE -->
+<div id="indicatorListPage">
+
+    <div class="page-header">
+
+        <h1>🧠 Indicators</h1>
+
+        <input
+        type="text"
+        id="indicatorSearch"
+        placeholder="Search Indicator..."
+        onkeyup="filterIndicators()">
+
+    </div>
+    <!-- CATEGORY FILTERS -->
+    <div class="indicator-filters">
+
+        <button class="filter-btn active-filter"
+        onclick="filterIndicatorCategory('ALL', this)">
+
+            All
+
+        </button>
+
+        <button class="filter-btn"
+        onclick="filterIndicatorCategory('BEST', this)">
+
+            Best
+
+        </button>
+
+        <button class="filter-btn"
+        onclick="filterIndicatorCategory('COMBO', this)">
+
+            Combo
+
+        </button>
+
+        <button class="filter-btn"
+        onclick="filterIndicatorCategory('BESTCOMBO', this)">
+
+            Best Combo Strategy
+
+        </button>
+
+        <button class="filter-btn"
+        onclick="filterIndicatorCategory('FVG', this)">
+
+            FVG
+
+        </button>
+
+        <button class="filter-btn"
+        onclick="filterIndicatorCategory('SMC', this)">
+
+            SMC
+
+        </button>
+
+    </div>
+
+    <div class="code-grid"
+    id="indicatorGrid"></div>
+
+</div>
+
+<!-- STRATEGY PAGE -->
+<div id="strategyListPage">
+
+    <div class="page-header">
+
+        <h1>🚀 My Strategies</h1>
+
+        <input
+        type="text"
+        id="strategySearch"
+        placeholder="Search Strategy..."
+        onkeyup="filterStrategies()">
+
+    </div>
+
+    
+
+    <div class="code-grid"
+id="strategyGrid"></div>
+
+</div>
+<!-- YOUTUBE PAGE -->
+<div id="youtubePage">
+
+    <div class="page-header">
+
+        <h1>📺 YouTube</h1>
+
+    </div>
+
+    <!-- CHANNEL CATEGORY -->
+    <div class="youtube-section">
+
+        <h2 class="youtube-category-title">
+
+            📡 Channels
+
+        </h2>
+
+        <div class="youtube-grid"
+        id="youtubeChannelGrid"></div>
+
+    </div>
+
+    <!-- VIDEOS CATEGORY -->
+    <div class="youtube-section">
+
+        <h2 class="youtube-category-title">
+
+            🎥 Videos
+
+        </h2>
+
+        <div class="youtube-grid"
+        id="youtubeVideoGrid"></div>
+
+    </div>
+
+</div>
+
+
+<!-- DETAILS PAGE -->
+<div id="detailsPage">
+
+    <button class="back-btn"
+    onclick="goBack()">
+
+        ← Back
+
+    </button>
+
+    <!-- TITLE -->
+    <h1 id="detailTitle"></h1>
+
+    <!-- CATEGORY -->
+    <div id="detailCategory"></div>
+
+    <!-- APPLY -->
+    <button id="applyBtn">
+
+        🚀 Apply
+
+    </button>
+
+    <!-- DESCRIPTION -->
+    <div class="detail-card">
+
+        <h2>Description</h2>
+
+        <p id="detailDescription"></p>
+
+    </div>
+
+    <!-- MULTIPLE CODES -->
+    <div id="multiCodeContainer"></div>
+
+    <!-- IMAGES -->
+    <div class="detail-card">
+
+        <h2>Charts</h2>
+
+        <div id="imageGallery"></div>
+
+    </div>
+
+</div>
+
+<!-- IMAGE POPUP -->
+<div id="imagePopup">
+
+    <span id="closePopup">
+
+        ✖
+
+    </span>
+
+    <img id="popupImage">
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,248 @@
+//@version=5
+indicator(" EMA 9/15 +  Pivot HL + FVG By Me ", overlay=true, max_boxes_count=500, max_labels_count=500)
+
+// =========================
+// === EMA SETTINGS ========
+// =========================
+len1 = input.int(9, minval=1, title="EMA 9 Length")
+len2 = input.int(15, minval=1, title="EMA 15 Length")
+src  = input(close, title="EMA Source")
+
+// === EMA CALCULATION ===
+ema9  = ta.ema(src, len1) 
+ema15 = ta.ema(src, len2)
+
+// === EMA PLOT ===
+plot(ema9,  title="EMA 9",  color=color.rgb(25, 228, 32), linewidth=1)
+plot(ema15, title="EMA 15", color=color.rgb(236, 18, 18), linewidth=1)
+
+// === EMA CROSS SIGNALS ===
+bullishCross = ta.crossover(ema9, ema15)
+bearishCross = ta.crossunder(ema9, ema15)
+
+
+
+// =========================
+// === PIVOT SETTINGS ======
+// =========================
+pivotStrength = input.int(3, "Pivot Strength", minval=1)
+tf = input.timeframe("", "Pivot Timeframe (Leave empty = Chart TF)")
+
+pivotHighColor = input.color(color.lime, "Pivot High Color")
+pivotLowColor  = input.color(color.black, "Pivot Low Color")
+
+// === MTF SOURCE ===
+htfHigh = tf == "" ? high : request.security(syminfo.tickerid, tf, high)
+htfLow  = tf == "" ? low  : request.security(syminfo.tickerid, tf, low)
+
+// === PIVOTS ===
+ph = ta.pivothigh(htfHigh, pivotStrength, pivotStrength)
+pl = ta.pivotlow(htfLow, pivotStrength, pivotStrength)
+
+// === PIVOT PLOT ===
+plotshape(not na(ph),style=shape.triangledown,location=location.abovebar,     color=pivotHighColor,size=size.tiny,offset=-pivotStrength)
+
+plotshape(not na(pl),style=shape.triangleup, location=location.belowbar,     color=pivotLowColor, size=size.tiny,offset=-pivotStrength)
+
+
+
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TIMEFRAME SETTINGS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+showChartTF = input.bool(true, "Timeframe 1: Chart")
+show15m     = input.bool(false, "Timeframe 2: 15 Minutes")
+show1H      = input.bool(false, "Timeframe 3: 1 Hour")
+show4H      = input.bool(false, "Timeframe 4: 4 Hours")
+show1D      = input.bool(false, "Timeframe 5: 1 Day")
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FVG SETTINGS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+showFVG         = input.bool(true, "Show FVG")
+filledType      = input.string("Close", "Filled FVG Type", options=["Close", "Wick"])
+deleteAfterFill = input.bool(true, "Delete Boxes after fill?")
+extendBoxes     = input.bool(false, "Extend Boxes?")
+boxLength       = input.int(20, "Length of Boxes")
+maxTrackBars    = input.int(300, "Max bars back")
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LABEL SETTINGS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+showLabels = input.bool(true, "Show Labels?")
+
+tf1Bull = input.string("FVG", "TF1 Bull Label")
+tf1Bear = input.string("FVG", "TF1 Bear Label")
+
+tf2Bull = input.string("15m FVG", "TF2 Bull Label")
+tf2Bear = input.string("15m FVG", "TF2 Bear Label")
+
+tf3Bull = input.string("1h FVG", "TF3 Bull Label")
+tf3Bear = input.string("1h FVG", "TF3 Bear Label")
+
+tf4Bull = input.string("4h FVG", "TF4 Bull Label")
+tf4Bear = input.string("4h FVG", "TF4 Bear Label")
+
+tf5Bull = input.string("D FVG", "TF5 Bull Label")
+tf5Bear = input.string("D FVG", "TF5 Bear Label")
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COLORS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+bullBoxColor = input.color(color.new(#1de623, 90), "Bullish FVG")
+bearBoxColor = input.color(color.new(color.red, 90), "Bearish FVG")
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ARRAYS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var box[] boxes = array.new_box()
+var label[] labels = array.new_label()
+var float[] tops = array.new_float()
+var float[] bottoms = array.new_float()
+var bool[] bullishArr = array.new_bool()
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DRAW FUNCTION
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+drawZone(_left, _top, _bottom, _bull, _label)=>
+
+    bgcolor = _bull ? bullBoxColor : bearBoxColor
+
+    rightSide = extendBoxes ? bar_index + 500 : _left + boxLength
+
+    bx = box.new(
+         left = _left,
+         right = rightSide,
+         top = _top,
+         bottom = _bottom,
+         bgcolor = bgcolor,
+         border_color = na,
+         border_width = 0)
+
+    array.push(boxes, bx)
+    array.push(tops, _top)
+    array.push(bottoms, _bottom)
+    array.push(bullishArr, _bull)
+
+    // LABEL
+    if showLabels
+
+        midY = (_top + _bottom) / 2
+        labelX = rightSide - 1
+
+        lb = label.new(
+             x = labelX,
+             y = midY,
+             text = _label,
+             style = label.style_none,
+             textalign = text.align_right,
+             size = size.small,
+             textcolor = _bull ? color.rgb(17, 233, 128) : color.red)
+
+        array.push(labels, lb)
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CURRENT TF LIVE FVG
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+bullFVG = low > high[2]
+bearFVG = high < low[2]
+
+if showChartTF and showFVG
+
+    if bullFVG
+        drawZone(
+             bar_index[2],
+             low,
+             high[2],
+             true,
+             tf1Bull)
+
+    if bearFVG
+        drawZone(
+             bar_index[2],
+             low[2],
+             high,
+             false,
+             tf1Bear)
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 15M DATA
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[b15Bull, b15Bear, h15_2, l15_2, h15_0, l15_0] =request.security(syminfo.tickerid,"15",[low > high[2] ? 1 : 0,high < low[2] ? 1 : 0,high[2],low[2],high,low],lookahead = barmerge.lookahead_on)
+
+if show15m and showFVG
+
+    if b15Bull == 1
+        drawZone(bar_index, l15_0, h15_2, true, tf2Bull)
+
+    if b15Bear == 1
+        drawZone(bar_index, l15_2, h15_0, false, tf2Bear)
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 1H DATA
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[b1Bull, b1Bear, h1_2, l1_2, h1_0, l1_0] =request.security(syminfo.tickerid,"60",[low > high[2] ? 1 : 0,high < low[2] ? 1 : 0,high[2],low[2],high,low],lookahead = barmerge.lookahead_on)
+
+if show1H and showFVG
+
+    if b1Bull == 1
+        drawZone(bar_index, l1_0, h1_2, true, tf3Bull)
+
+    if b1Bear == 1
+        drawZone(bar_index, l1_2, h1_0, false, tf3Bear)
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 4H DATA
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[b4Bull, b4Bear, h4_2, l4_2, h4_0, l4_0] =request.security(syminfo.tickerid,"240",[low > high[2] ? 1 : 0,high < low[2] ? 1 : 0,high[2],low[2],high,low],lookahead = barmerge.lookahead_on)
+
+if show4H and showFVG
+
+    if b4Bull == 1
+        drawZone(bar_index, l4_0, h4_2, true, tf4Bull)
+
+    if b4Bear == 1
+        drawZone(bar_index, l4_2, h4_0, false, tf4Bear)
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DAILY DATA
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[bDBull, bDBear, hD_2, lD_2, hD_0, lD_0] =request.security(syminfo.tickerid,"D",[low > high[2] ? 1 : 0,high < low[2] ? 1 : 0,high[2],low[2],high,low],lookahead = barmerge.lookahead_on)
+
+if show1D and showFVG
+
+    if bDBull == 1
+        drawZone(bar_index, lD_0, hD_2, true, tf5Bull)
+
+    if bDBear == 1
+        drawZone(bar_index, lD_2, hD_0, false, tf5Bear)
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DELETE FILLED BOXES
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+if deleteAfterFill and array.size(boxes) > 0
+
+    for i = array.size(boxes) - 1 to 0
+
+        top_ = array.get(tops, i)
+        bot_ = array.get(bottoms, i)
+        bull_ = array.get(bullishArr, i)
+
+        filled = filledType == "Close" ?
+             (bull_ ? close <= bot_ : close >= top_) :
+             (bull_ ? low <= bot_ : high >= top_)
+
+        if filled
+
+            box.delete(array.get(boxes, i))
+
+            if array.size(labels) > i
+                label.delete(array.get(labels, i))
+
+            array.remove(boxes, i)
+            array.remove(tops, i)
+            array.remove(bottoms, i)
+            array.remove(bullishArr, i)
+
+            if array.size(labels) > i
+                array.remove(labels, i)

@@ -1,0 +1,136 @@
+//@version=6
+indicator("FVG (Nephew sam remake)", overlay=true)
+
+
+
+boxLength = 20
+boxLength4H = 30
+maxTrackBars = 300
+checkForwardBars = 300
+
+var box[] fvgBoxes = array.new_box()
+var label[] fvgLabels = array.new_label()
+var int[] fvgCreatedBars = array.new_int()
+var bool[] fvgIsBullish = array.new_bool()
+var float[] fvgCompareLevels = array.new_float()
+
+// === Timeframe Rank Logic
+timeframeRank(tf) => tf == "1" ? 1 : tf == "3" ? 2 : tf == "5" ? 3 : tf == "15" ? 4 : tf == "30" ? 5 : tf == "60" ? 6 : tf == "120" ? 7 : tf == "240" ? 8 : tf == "D" ? 9 : tf == "W" ? 10 : tf == "M" ? 11 : 0
+chartTFRank = timeframeRank(timeframe.period)
+rank15M = timeframeRank("15")
+rank1H = timeframeRank("60")
+rank4H = timeframeRank("240")
+
+// === Helper Function to Draw FVGs
+drawFVG(barIdx, top, bottom, labelText, color_, compare, isBullish, len) =>
+    realTop = math.max(top, bottom)
+    realBot = math.min(top, bottom)
+    mid = (realTop + realBot) / 2
+    boxColor = labelText == "4H" ? color.new(color_, 60) : color.new(color_, 85)
+    border = labelText == "4H" ? color.gray : na
+    b = box.new(left=barIdx, right=barIdx + len, top=realTop, bottom=realBot, border_color=border, bgcolor=boxColor)
+    array.push(fvgBoxes, b)
+    array.push(fvgCreatedBars, barIdx)
+    array.push(fvgIsBullish, isBullish)
+    array.push(fvgCompareLevels, compare)
+    lbY = isBullish ? mid : mid - (realTop - realBot) * 0.3
+    lb = label.new(x=barIdx + len - 1, y=lbY, text=labelText, style=label.style_none, size=size.normal, textcolor=isBullish ? color.green : color.red)
+    array.push(fvgLabels, lb)
+
+
+
+// === Global FVG Data from Higher Timeframes
+// 1H
+[fb1H, ff1H, ft1H, fh3_1H, fl3_1H, fh1_1H, fl1_1H] = request.security(syminfo.tickerid, "60", [low[1] > high[3] ? 1 : 0, high[1] < low[3] ? 1 : 0, time[3], high[3], low[3], high[1], low[1]])
+// 4H
+[fb4H, ff4H, ft4H, fh3_4H, fl3_4H, fh1_4H, fl1_4H] = request.security(syminfo.tickerid, "240", [low[1] > high[3] ? 1 : 0, high[1] < low[3] ? 1 : 0, time[3], high[3], low[3], high[1], low[1]])
+
+// === 15m Chart: 15m + 1H + 4H FVGs
+if chartTFRank == rank15M
+    // 15m FVGs
+    if low[1] > high[3]
+        drawFVG(bar_index[3], low[1], high[3], "15m", color.green, high[3], true, boxLength)
+    if high[1] < low[3]
+        drawFVG(bar_index[3], low[3], high[1], "15m", color.red, low[3], false, boxLength)
+
+    // 1H FVGs
+    int barIdx1H = na
+    for i = 0 to 50
+        if time[i] == ft1H
+            barIdx1H := bar_index[i]
+    if not na(barIdx1H)
+        if fb1H == 1
+            drawFVG(barIdx1H, math.max(fl1_1H, fh3_1H), math.min(fl1_1H, fh3_1H), "1H", color.lime, fh3_1H, true, boxLength)
+        if ff1H == 1
+            drawFVG(barIdx1H, math.max(fl3_1H, fh1_1H), math.min(fl3_1H, fh1_1H), "1H", color.maroon, fl3_1H, false, boxLength)
+
+    // 4H FVGs
+    int barIdx4H = na
+    for i = 0 to 50
+        if math.abs(time[i] - ft4H) < 15 * 60 * 1000  // 15 min tolerance
+            barIdx4H := bar_index[i]
+            break
+    if not na(barIdx4H)
+        if fb4H == 1
+            drawFVG(barIdx4H, math.max(fl1_4H, fh3_4H), math.min(fl1_4H, fh3_4H), "4H", color.green, fh3_4H, true, boxLength4H)
+        if ff4H == 1
+            drawFVG(barIdx4H, math.max(fl3_4H, fh1_4H), math.min(fl3_4H, fh1_4H), "4H", color.red, fl3_4H, false, boxLength4H)
+
+
+
+// === 1H Chart: 1H + 4H FVGs
+if chartTFRank == rank1H
+    // 1H FVGs
+    if low[1] > high[3]
+        drawFVG(bar_index[3], low[1], high[3], "1H", color.green, high[3], true, boxLength)
+    if high[1] < low[3]
+        drawFVG(bar_index[3], low[3], high[1], "1H", color.red, low[3], false, boxLength)
+
+    // 4H FVGs
+    int barIdx4H = na
+    minDiff = 999999999
+    for i = 0 to 50
+        diff = math.abs(time[i] - ft4H)
+        if diff < minDiff
+            minDiff := diff
+            barIdx4H := bar_index[i]
+    if not na(barIdx4H)
+        if fb4H == 1
+            drawFVG(barIdx4H, math.max(fl1_4H, fh3_4H), math.min(fl1_4H, fh3_4H), "4H", color.green, fh3_4H, true, boxLength4H)
+        if ff4H == 1
+            drawFVG(barIdx4H, math.max(fl3_4H, fh1_4H), math.min(fl3_4H, fh1_4H), "4H", color.red, fl3_4H, false, boxLength4H)
+
+// === 4H Chart: Only 4H FVGs
+if chartTFRank == rank4H
+    if low[1] > high[3]
+        drawFVG(bar_index[3], low[1], high[3], "4H", color.green, high[3], true, boxLength4H)
+    if high[1] < low[3]
+        drawFVG(bar_index[3], low[3], high[1], "4H", color.red, low[3], false, boxLength4H)
+
+// === Disrespect & Cleanup
+if array.size(fvgBoxes) > 0
+    for i = array.size(fvgBoxes) - 1 to 0
+        isBullish = array.get(fvgIsBullish, i)
+        compare = array.get(fvgCompareLevels, i)
+        createdBar = array.get(fvgCreatedBars, i)
+        age = bar_index - createdBar
+        if age > maxTrackBars
+            box.delete(array.get(fvgBoxes, i))
+            label.delete(array.get(fvgLabels, i))
+            array.remove(fvgBoxes, i)
+            array.remove(fvgLabels, i)
+            array.remove(fvgCreatedBars, i)
+            array.remove(fvgIsBullish, i)
+            array.remove(fvgCompareLevels, i)
+            continue
+        if bar_index > createdBar and bar_index <= createdBar + checkForwardBars
+            c = close
+            disrespect = (isBullish and c < compare) or (not isBullish and c > compare)
+            if disrespect
+                box.delete(array.get(fvgBoxes, i))
+                label.delete(array.get(fvgLabels, i))
+                array.remove(fvgBoxes, i)
+                array.remove(fvgLabels, i)
+                array.remove(fvgCreatedBars, i)
+                array.remove(fvgIsBullish, i)
+                array.remove(fvgCompareLevels, i)

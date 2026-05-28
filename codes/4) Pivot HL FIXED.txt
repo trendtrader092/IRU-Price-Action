@@ -1,0 +1,18 @@
+//@version=5
+indicator("Pivot HL FIXED", overlay=true)
+
+// === INPUT ===
+pivotStrength = input.int(3, "Pivot Strength", minval=1)
+
+// === COLORS ===
+pivotHighColor = input.color(color.lime, "Pivot High Color")
+pivotLowColor  = input.color(color.black, "Pivot Low Color")
+
+// === PIVOTS ===
+ph = ta.pivothigh(high, pivotStrength, pivotStrength)
+pl = ta.pivotlow(low, pivotStrength, pivotStrength)
+
+// === PLOT ===
+plotshape(not na(ph), style=shape.triangledown, location=location.abovebar, color=pivotHighColor, size=size.tiny, offset=-pivotStrength)
+
+plotshape(not na(pl),style=shape.triangleup,location=location.belowbar,color=pivotLowColor,size=size.tiny,offset=-pivotStrength)

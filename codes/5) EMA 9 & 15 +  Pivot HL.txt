@@ -1,0 +1,45 @@
+//@version=5
+indicator("EMA 9/15 +  Pivot HL ", overlay=true)
+
+// =========================
+// === EMA SETTINGS ========
+// =========================
+len1 = input.int(9, minval=1, title="EMA 9 Length")
+len2 = input.int(15, minval=1, title="EMA 15 Length")
+src  = input(close, title="EMA Source")
+
+// === EMA CALCULATION ===
+ema9  = ta.ema(src, len1) 
+ema15 = ta.ema(src, len2)
+
+// === EMA PLOT ===
+plot(ema9,  title="EMA 9",  color=color.rgb(25, 228, 32), linewidth=1)
+plot(ema15, title="EMA 15", color=color.rgb(236, 18, 18), linewidth=1)
+
+// === EMA CROSS SIGNALS ===
+bullishCross = ta.crossover(ema9, ema15)
+bearishCross = ta.crossunder(ema9, ema15)
+
+
+
+// =========================
+// === PIVOT SETTINGS ======
+// =========================
+pivotStrength = input.int(3, "Pivot Strength", minval=1)
+tf = input.timeframe("", "Pivot Timeframe (Leave empty = Chart TF)")
+
+pivotHighColor = input.color(color.lime, "Pivot High Color")
+pivotLowColor  = input.color(color.black, "Pivot Low Color")
+
+// === MTF SOURCE ===
+htfHigh = tf == "" ? high : request.security(syminfo.tickerid, tf, high)
+htfLow  = tf == "" ? low  : request.security(syminfo.tickerid, tf, low)
+
+// === PIVOTS ===
+ph = ta.pivothigh(htfHigh, pivotStrength, pivotStrength)
+pl = ta.pivotlow(htfLow, pivotStrength, pivotStrength)
+
+// === PIVOT PLOT ===
+plotshape(not na(ph),style=shape.triangledown,location=location.abovebar,     color=pivotHighColor,size=size.tiny,offset=-pivotStrength)
+
+plotshape(not na(pl),style=shape.triangleup, location=location.belowbar,     color=pivotLowColor, size=size.tiny,offset=-pivotStrength)
